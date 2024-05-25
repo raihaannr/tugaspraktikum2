@@ -11,25 +11,34 @@ export const getUsers = async(req, res) => {
     } catch (error) {
         console.log(error);
     }
-}
+};
 
 export const Register = async(req, res) => {
     const { name, email, password, confPassword } = req.body;
-    if(password !== confPassword) return res.status(400).json({msg: "Password dan Confirm Password tidak cocok"});
-    const salt = await bcrypt.genSalt();
-    const hashPassword = await bcrypt.hash(password, salt);
+    
+    // Periksa apakah password dan konfirmasi password cocok
+    if (password !== confPassword) {
+        return res.status(400).json({ msg: "Password dan Confirm Password tidak cocok" });
+    }
+
     try {
+        // Hash password sebelum menyimpannya ke database
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Buat pengguna baru dalam database
         await Users.create({
             name: name,
             email: email,
-            password: hashPassword,
-
+            password: hashedPassword,
         });
-        res.json({msg: "Register Berhasil"});
+
+        res.json({ msg: "Register Berhasil" });
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        res.status(500).json({ msg: 'Internal Server Error' });
     }
-}
+};
 
 export const Login = async (req, res) => {
     try {
